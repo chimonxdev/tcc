@@ -1,7 +1,8 @@
 import express from 'express';
-import cors from 'cors'; // 1. นำเข้าโมดูลอนุญาตข้ามไซต์
+import cors from 'cors';
 import OpenAI from 'openai';
 
+// 1. ตรวจสอบ API Key จาก Environment Variable
 if (!process.env.TYPHOON_API_KEY) {
   console.error('❌ Error: ไม่พบ TYPHOON_API_KEY ใน Environment Variables');
   process.exit(1);
@@ -10,9 +11,9 @@ if (!process.env.TYPHOON_API_KEY) {
 const app = express();
 const port = process.env.PORT || 3000; 
 
-// 2. ปลดล็อกเปิดประตูให้ Zapier ยิงข้าม Site (CORS) เข้ามาได้ 100%
+// 2. ปลดล็อก CORS ให้ Zapier ยิงข้ามไซต์เข้ามารับส่งข้อมูลได้
 app.use(cors({
-  origin: '*', // อนุญาตทุก origin หรือระบุเฉพาะเจาะจงได้
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -20,8 +21,14 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// 3. ✨ ประกาศตัวแปร openai ให้ระบบรู้จักอย่างถูกต้อง ✨
+const openai = new OpenAI({
+  apiKey: process.env.TYPHOON_API_KEY, 
+  baseURL: 'https://api.opentyphoon.ai/v1',
+});
+
 app.get('/', (req, res) => {
-  res.send('🚀 เซิร์ฟเวอร์กัปตันช้าง ปลดล็อก CORS เรียบร้อยแล้วครับ!');
+  res.send('🚀 เซิร์ฟเวอร์กัปตันช้างทำงานปกติ และพร้อมคุยกับ Typhoon แล้วครับ!');
 });
 
 app.post('/chat', async (req, res) => {
@@ -49,8 +56,9 @@ app.post('/chat', async (req, res) => {
   ];
 
   try {
+    // เลือกใช้โมเดลหลักและเปิดคำสั่งคุยกับ Typhoon (ตัวแปร openai ถูกประกาศไว้ด้านบนแล้ว)
     const response = await openai.chat.completions.create({
-      model: 'typhoon-v2.5-30b-a3b-instruct',
+      model: 'typhoon-v2.5-30b-a3b-instruct', 
       messages: messages,
       temperature: 0.4,
       max_completion_tokens: 150,
@@ -63,9 +71,12 @@ app.post('/chat', async (req, res) => {
     res.status(200).json({ reply: replyMessage });
 
   } catch (error) {
-    console.error('Error connecting to Typhoon:', error);
+    console.error('❌ Typhoon API Error:', error.message);
     if (!res.headersSent) {
-      res.status(500).json({ error: 'เกิดข้อผิดพลาดในการเชื่อมต่อ Typhoon' });
+      res.status(500).json({ 
+        error: 'เกิดข้อผิดพลาดในการเชื่อมต่อ Typhoon',
+        reason: error.message 
+      });
     }
   }
 });

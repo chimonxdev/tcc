@@ -17,6 +17,7 @@ if (!process.env.MONGODB_URI) {
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('🍃 Connected to MongoDB Atlas successfully!'))
   .catch((err) => console.error('❌ MongoDB Connection Error:', err));
+
 const chatSchema = new mongoose.Schema({
   userId: { type: String, required: true, unique: true },
   history: [
@@ -88,6 +89,14 @@ app.get('/', (req, res) => {
 
 app.post('/chat', async (req, res) => {
   console.log('📥 Zapier POST Body:', JSON.stringify(req.body));
+
+  // ✨ [จุดที่เพิ่มเข้ามา] เช็กสถานะการเชื่อมต่อ Database ก่อนทำงาน ป้องกันอาการค้าง
+  if (mongoose.connection.readyState !== 1) {
+    console.error('❌ Database connection is not ready. Current state:', mongoose.connection.readyState);
+    return res.status(500).json({ 
+      error: 'ระบบฐานข้อมูลยังไม่พร้อมใช้งานชั่วคราว กรุณาลองใหม่อีกครั้งครับ' 
+    });
+  }
 
   const body = Array.isArray(req.body) ? req.body[0] : req.body;
   const userMessage = body?.message || body?.Message || body?.text;

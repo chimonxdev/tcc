@@ -1,12 +1,30 @@
+import express from 'express';
 import OpenAI from 'openai';
+
+// ตรวจสอบ API Key
+if (!process.env.TYPHOON_API_KEY) {
+  console.error('❌ Error: ไม่พบ TYPHOON_API_KEY ใน Environment Variables');
+  process.exit(1);
+}
+
+const app = express();
+const port = process.env.PORT || 3000; // Render จะกำหนด PORT มาให้โดยอัตโนมัติ
+
+app.use(express.json());
 
 // ตั้งค่าการเชื่อมต่อกับ Typhoon API
 const openai = new OpenAI({
-  apiKey: process.env.TYPHOON_API_KEY,
+  apiKey: process.env.TYPHOON_API_KEY, 
   baseURL: 'https://api.opentyphoon.ai/v1',
 });
 
-async function streamCompletion(userMessage) {
+app.post('/chat', async (req, res) => {
+  const userMessage = req.body.message;
+
+  if (!userMessage) {
+    return res.status(400).json({ error: 'กรุณาส่ง message มาใน body ด้วยครับ' });
+  }
+
   const messages = [
     { 
       role: 'system', 
@@ -19,6 +37,11 @@ async function streamCompletion(userMessage) {
   ];
 
   try {
+    // ตั้งค่า Header สำหรับทำ Streaming (Server-Sent Events) ไปยังฝั่ง Client
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
     const stream = await openai.chat.completions.create({
       model: 'typhoon-v2.5-30b-a3b-instruct',
       messages: messages,
@@ -30,14 +53,19 @@ async function streamCompletion(userMessage) {
     });
 
     for await (const chunk of stream) {
-      process.stdout.write(chunk.choices[0]?.delta?.content || '');
+      const content = chunk.choices[0]?.delta?.content || '';
+      res.write(content); 
     }
-    console.log(); // 
+    
+    res.end(); 
   } catch (error) {
     console.error('Error connecting to Typhoon:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'เกิดข้อผิดพลาดในการเชื่อมต่อ Typhoon' });
+    }
   }
-}
+});
 
-
-
-streamCompletion(testQuestion);
+app.listen(port, () => {
+  console.log(`🚀 Server Is Running On Port ${port}`);
+});

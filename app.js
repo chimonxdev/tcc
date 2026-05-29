@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import OpenAI from 'openai';
-import mongoose from 'mongoose'; // ✨ นำเข้า mongoose สำหรับต่อ DB
+import mongoose from 'mongoose'; //  นำเข้า mongoose สำหรับต่อ DB
 
 // 1. ตรวจสอบ API Key และ DB URI จาก Environment Variable
 if (!process.env.TYPHOON_API_KEY) {
@@ -13,12 +13,10 @@ if (!process.env.MONGODB_URI) {
   process.exit(1);
 }
 
-// ✨ เชื่อมต่อฐานข้อมูล MongoDB Atlas (ฟรี)
+// เชื่อมต่อฐานข้อมูล MongoDB Atlas
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('🍃 Connected to MongoDB Atlas successfully!'))
   .catch((err) => console.error('❌ MongoDB Connection Error:', err));
-
-// ✨ สร้าง Schema และ Model สำหรับเก็บประวัติแชทลง DB
 const chatSchema = new mongoose.Schema({
   userId: { type: String, required: true, unique: true },
   history: [
@@ -132,9 +130,9 @@ app.post('/chat', async (req, res) => {
       stream: false, 
     });
 
-    const replyMessage = response.choices[0]?.message?.content || 'กัปตันช้างมึนหัวนิดหน่อย รบกวนลองถามใหม่ครับ';
+    const replyMessage = response.choices[0]?.message?.content || 'ช้างมึนหัวนิดหน่อย รบกวนลองถามใหม่ครับ';
     
-    // 3. ✨ ใส่คำตอบของ AI ลงในประวัติ
+    // 3. ใส่คำตอบของ AI ลงในประวัติ
     chatSession.history.push({ role: 'assistant', content: replyMessage });
 
     // คุมไม่ให้ประวัติต่อยาวเกินไปจนเปลือง Token 
@@ -156,7 +154,6 @@ app.post('/chat', async (req, res) => {
   }
 });
 
-// จุดล้างสมองบอทรายบุคคล (เผื่อแอดมินจริงอยากกดล้างความจำแชทคนนี้ใน DB)
 app.post('/clear-chat', async (req, res) => {
   const userId = req.body?.userId;
   if (userId) {

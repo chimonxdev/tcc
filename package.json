@@ -1,5 +1,10 @@
 {
+  "name": "typhoon-tcc",
+  "version": "1.0.0",
   "type": "module",
+  "scripts": {
+    "start": "node app.js"
+  },
   "dependencies": {
     "openai": "^4.0.0"
   }

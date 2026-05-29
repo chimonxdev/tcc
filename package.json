@@ -8,6 +8,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.19.0",
+    "mongoose": "^8.0.0", 
     "openai": "^4.0.0"
   }
 }

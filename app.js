@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 
 // ตั้งค่าการเชื่อมต่อกับ Typhoon API
 const openai = new OpenAI({
-  apiKey: process.env.TYPHOON_API_KEY || '<YOUR_API_KEY>', // แนะนำให้ใส่ผ่าน Environment Variable หรือเปลี่ยนตรงนี้เป็นคีย์ของคุณ
+  apiKey: process.env.TYPHOON_API_KEY,
   baseURL: 'https://api.opentyphoon.ai/v1',
 });
 

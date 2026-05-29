@@ -134,10 +134,10 @@ app.post('/chat', async (req, res) => {
     const response = await openai.chat.completions.create({
       model: 'typhoon-v2.5-30b-a3b-instruct', 
       messages: messages,
-      temperature: 0.4,
+      temperature: 0.2,
       max_completion_tokens: 150,
-      top_p: 0.5,
-      frequency_penalty: 0.5,
+      top_p: 0.2,
+      frequency_penalty: 0.0,
       stream: false, 
     });
 

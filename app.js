@@ -32,16 +32,12 @@ async function streamCompletion(userMessage) {
     for await (const chunk of stream) {
       process.stdout.write(chunk.choices[0]?.delta?.content || '');
     }
-    console.log(); // เว้นบรรทัดใหม่เมื่อ Stream จบ
+    console.log(); // 
   } catch (error) {
     console.error('Error connecting to Typhoon:', error);
   }
 }
 
-// --- ทดสอบเรียกใช้งาน ---
-// สามารถเปลี่ยนข้อความในนี้เพื่อทดสอบ Prompt กัปตันช้างได้เลยครับ
-const testQuestion = 'จองโต๊ะ 1 ที่ครับ';
-console.log(`คำถามลูกค้า: "${testQuestion}"`);
-console.log('--- คำตอบจากกัปตันช้าง ---');
+
 
 streamCompletion(testQuestion);

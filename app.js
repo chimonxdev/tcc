@@ -79,7 +79,7 @@ function getDynamicSystemPrompt() {
   if (SPECIAL_EVENTS[todayStr]) {
     shopStatus = SPECIAL_EVENTS[todayStr];
   } else if (isTodayHoliday) {
-    shopStatus = '🔴 **วันนี้ร้านปิดให้บริการ** (เนื่องจากเป็นวันสำคัญทางพระพุทธศาสนา)';
+    shopStatus = '🔴 **วันนี้ร้านปิดให้บริการ** (เนื่องจากเป็นวันสำคัญทางพระพุทธศาสนา/ก่อนวันเลือกตั้ง)';
   } else if (isTomorrowHoliday) {
     shopStatus = '🟡 วันนี้ร้านเปิด 17.00 น. แต่ **ปิดเร็วกว่าปกติในเวลา 00.00 น. (เที่ยงคืน)** (เนื่องจากพรุ่งนี้เป็นวันสำคัญทางพระพุทธศาสนา)';
   }

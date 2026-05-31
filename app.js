@@ -49,7 +49,7 @@ const openai = new OpenAI({
 
 const MAX_HISTORY = 6; // จำกัดประวัติใน DB ไม่ให้ยาวเกินไป เพื่อเซฟ Token
 
-// ✨ [อัปเดตปี 2026] รายการวันหยุดทางศาสนาที่ห้ามขายแอลกอฮอล์ / ร้านต้องปิด (Format: YYYY-MM-DD)
+// ✨ [วันหยุดศาสนาปี 2026] ห้ามขายแอลกอฮอล์ / ร้านต้องปิด (Format: YYYY-MM-DD)
 const BUDDHIST_HOLIDAYS = [
   '2026-03-03', // วันมาฆบูชา
   '2026-05-31', // วันวิสาขบูชา
@@ -57,6 +57,12 @@ const BUDDHIST_HOLIDAYS = [
   '2026-07-30', // วันเข้าพรรษา
   '2026-10-26', // วันออกพรรษา
 ];
+
+// ✨ [เหตุการณ์พิเศษ] ตั้งค่าสถานะร้านแบบ Custom ตามวันที่ระบุ (Format: YYYY-MM-DD)
+const SPECIAL_EVENTS = {
+  '2026-06-27': '🔴 **วันนี้ร้านปิดให้บริการ** (เนื่องจากเป็นคืนก่อนวันเลือกตั้ง กทม.)',
+  '2026-06-28': '🟡 วันนี้ร้านเปิด 17.00 น. ตามปกติ แต่ **จะเริ่มจำหน่ายเครื่องดื่มแอลกอฮอล์ได้ตั้งแต่เวลา 18.00 น. เป็นต้นไป** (ตามกฎหมายวันเลือกตั้ง)'
+};
 
 // ฟังก์ชันสร้าง System Prompt แบบ Dynamic เพื่อบังคับ AI ตามวันที่ปัจจุบัน
 function getDynamicSystemPrompt() {
@@ -72,9 +78,17 @@ function getDynamicSystemPrompt() {
   const isTomorrowHoliday = BUDDHIST_HOLIDAYS.includes(tomorrowStr);
 
   let shopStatus = 'เปิดทุกวัน 17.00 - 02.00 น.';
-  if (isTodayHoliday) {
+
+  // ✨ 1. เช็กเหตุการณ์พิเศษจากตัวแปร SPECIAL_EVENTS ก่อนเสมอ
+  if (SPECIAL_EVENTS[todayStr]) {
+    shopStatus = SPECIAL_EVENTS[todayStr];
+  } 
+  // ✨ 2. เช็กวันพระ/วันสำคัญทางศาสนา
+  else if (isTodayHoliday) {
     shopStatus = '🔴 **วันนี้ร้านปิดให้บริการ** (เนื่องจากเป็นวันสำคัญทางพระพุทธศาสนา)';
-  } else if (isTomorrowHoliday) {
+  } 
+  // ✨ 3. เช็กวันก่อนวันพระ (ต้องปิดเที่ยงคืน)
+  else if (isTomorrowHoliday) {
     shopStatus = '🟡 วันนี้ร้านเปิด 17.00 น. แต่ **ปิดเร็วกว่าปกติในเวลา 00.00 น. (เที่ยงคืน)** (เนื่องจากพรุ่งนี้เป็นวันสำคัญทางพระพุทธศาสนา)';
   }
 
@@ -89,7 +103,7 @@ function getDynamicSystemPrompt() {
 2. ❌ ห้ามแถมข้อมูล! ถามคำไหน ตอบคำนั้นให้ตรงประเด็น สั้นและกระชับที่สุด ไม่ต้องอธิบายเพิ่มเกินความจำเป็น
 3. ใช้ Bullet points และ Emoji แยกบรรทัดให้อ่านง่าย
 4. 🔴 MULTILINGUAL SUPPORT: หากลูกค้าพิมพ์ภาษาอังกฤษ, จีน หรืออื่นๆ "ต้องแปลคำตอบจาก Knowledge Base และตอบกลับเป็นภาษานั้นๆ 100%" (ห้ามมีภาษาไทยปน และไม่ต้องลงท้ายครับ)
-5. หาก "สถานะร้านวันนี้" ระบุว่าร้านปิด ให้แจ้งลูกค้าไปตรงๆ ทันทีว่าวันนี้ร้านปิดตามประกาศ
+5. หาก "สถานะร้านวันนี้" ระบุว่าร้านปิด หรือมีการเปลี่ยนแปลงเวลา ให้แจ้งลูกค้าไปตามสถานะปัจจุบันทันที
 
 Knowledge Base (ข้อมูลร้านสำหรับอ้างอิง)
 เวลาปกติเปิด-ปิด: เปิดทุกวัน 17.00 - 02.00 น. (เช็ก "สถานะร้านวันนี้" ด้านบนก่อนตอบเสมอ)
@@ -159,7 +173,7 @@ app.post('/chat', async (req, res) => {
     const response = await openai.chat.completions.create({
       model: 'typhoon-v2.5-30b-a3b-instruct', 
       messages: messages,
-      temperature: 0.1, // ปรับลด Temperature ลงเพื่อความแม่นยำสูงสุดและลดการเดา
+      temperature: 0.1, 
       max_completion_tokens: 150,
       top_p: 0.2,
       frequency_penalty: 0.0,
@@ -171,11 +185,12 @@ app.post('/chat', async (req, res) => {
     // 3. ใส่คำตอบของ AI ลงในประวัติ
     chatSession.history.push({ role: 'assistant', content: replyMessage });
 
+    // คุมไม่ให้ประวัติต่อยาวเกินไปจนเปลือง Token 
     if (chatSession.history.length > MAX_HISTORY) {
       chatSession.history.splice(0, chatSession.history.length - MAX_HISTORY);
     }
 
-    // 4. บันทึกกลับลงฐานข้อมูล
+    // 4. บันทึกกลับลงฐานข้อมูลถาวร
     chatSession.updatedAt = new Date();
     await chatSession.save();
 

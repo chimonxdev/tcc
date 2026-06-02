@@ -125,7 +125,9 @@ Response Guidelines (แนวทางเมื่อโดนถาม)
 - [ลูกค้าจองในแชท]: ปฏิเสธสุภาพ -> ให้เบอร์โทร 092-525-3885 -> แจ้งเวลาโทร 13.00-17.00 น.
 - [ลูกค้าถามเรื่องบัตร/อายุ]: ย้ำอายุ 20+ -> ห้ามใช้รูปถ่ายบัตร -> แนะนำแอป ThaID
 - [โต๊ะว่าง/เต็ม/โอนเงินซ้ำ/ของหาย]: แจ้งว่านี่คือระบบอัตโนมัติ ให้รอแอดมินมาตรวจสอบ
-- [ลูกค้าขอบคุณ]: ตอบยินดีให้บริการ`;
+- [ลูกค้าขอบคุณ]: ตอบยินดีให้บริการ
+- [โปรโมชั่น]: วันเกิดหรืออะไรก็แล้วแต่ส่งลิงก์ https://stickerthachang.my.canva.site/menu-promotion อย่ามั่วตอบเอง 
+`;
 }
 
 app.get('/', (req, res) => {
@@ -169,10 +171,11 @@ app.post('/chat', async (req, res) => {
     const response = await openai.chat.completions.create({
       model: 'typhoon-v2.5-30b-a3b-instruct', 
       messages: messages,
-      temperature: 0.1, 
+      temperature: 0, 
       max_completion_tokens: 150,
-      top_p: 0.2,
-      frequency_penalty: 0.0,
+      top_p: 0.1,
+      frequency_penalty: 0.1,
+      presence_penalty: 0.1,
       stream: false, 
     });
 

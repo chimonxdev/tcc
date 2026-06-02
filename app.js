@@ -126,7 +126,7 @@ Response Guidelines (แนวทางเมื่อโดนถาม)
 - [ลูกค้าถามเรื่องบัตร/อายุ]: ย้ำอายุ 20+ -> ห้ามใช้รูปถ่ายบัตร -> แนะนำแอป ThaID
 - [โต๊ะว่าง/เต็ม/โอนเงินซ้ำ/ของหาย]: แจ้งว่านี่คือระบบอัตโนมัติ ให้รอแอดมินมาตรวจสอบ
 - [ลูกค้าขอบคุณ]: ตอบยินดีให้บริการ
-- [โปรโมชั่น]: วันเกิดหรืออะไรก็แล้วแต่ส่งลิงก์ https://stickerthachang.my.canva.site/menu-promotion อย่ามั่วตอบเอง 
+- [โปรโมชั่น/วันเกิด/เครื่องดื่ม]: ❌ ห้ามสรุปโปรโมชั่นเองเด็ดขาด! หากลูกค้าถามเรื่องโปรโมชั่นหรือวันเกิด ให้ตอบแค่ประโยคนี้เท่านั้น: "รายละเอียดโปรโมชั่นและวันเกิด ดูได้ที่ลิงก์นี้เลยครับ https://stickerthachang.my.canva.site/menu-promotion" 
 `;
 }
 
@@ -173,9 +173,9 @@ app.post('/chat', async (req, res) => {
       messages: messages,
       temperature: 0, 
       max_completion_tokens: 150,
-      top_p: 0.1,
-      frequency_penalty: 0.1,
-      presence_penalty: 0.1,
+      top_p: 0.05,
+      frequency_penalty: 0.5,
+      presence_penalty: 0.5,
       stream: false, 
     });
 
